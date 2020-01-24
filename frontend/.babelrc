@@ -1,0 +1,11 @@
+/* module.exports = {
+  presets: [
+    '@vue/app'
+  ]
+}
+ */
+
+{
+  "presets": ["env"],
+  "plugins": ["@babel/plugin-syntax-dynamic-import"]
+}
