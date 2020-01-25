@@ -1,0 +1,19 @@
+{
+  "name": "pruebaseis",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "preinstallfront": "npm install",
+    "installfront": "(cd frontend && npm install)",
+    "installback": "(cd backend && npm install)",
+    "postinstallfront": "npm run installback",
+    "installservers": "(npm run installfront)",
+    "runback": "(cd backend && nodemon app.js)",
+    "runfront": "(cd frontend && npm run serve)",
+    "runservers": "npm-run-all --parallel runback runfront"
+  },
+  "dependencies": {
+    "nodemon": "^2.0.2",
+    "npm-run-all": "^4.1.5"
+  }
+}
