@@ -33,31 +33,7 @@
         name: 'header',
         data(){
             return {
-                menus: [
-                    {
-                        id: 1,
-                        textHeader: "Home",
-                        url: "/"
-                    },
-                    {
-                        id: 2,
-                        textHeader: "Productos",
-                        url: "/productos"
-                    },
-                    {
-                        id: 3,
-                        textHeader: "Acerca De",
-                        url: "/about"
-                    }
-                ]
-            }
-        },
-        beforeMount(){
-            this.verificarSession()
-        },
-        computed:{
-            verificarSession: ()=>{
-                console.log(this.$session.exists())
+                menus: this.$store.state.menus
             }
         },
         components: {

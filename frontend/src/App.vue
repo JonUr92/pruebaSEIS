@@ -16,6 +16,9 @@
         padding: 20px 0px;
         margin: 0px;
       }
+  .swal2-container.swal2-center.swal2-backdrop-show{
+    z-index: 9999999;
+  }
 </style>
 <script>
   // @ is an alias to /src
@@ -29,26 +32,13 @@
         vue: this
       }
     },
-    beforeCreate(){
-      console.log(this.$session.exists())
-      if (!this.$session.exists()) {
-        this.$router.push('/productos')
-      } 
-    },
     methods: {
-      /* verificarSession: () =>{
-        console.log(this.$session.exists())
-        if (!this.$session.exists()) {
-          this.$router.push('/productos')
-        } 
-      } */
+
     },
-    computed:{
-      verificarSession: () =>{
-        console.log(this.$session.exists())
-        if (!this.$session.exists()) {
-          this.$router.push('/productos')
-        } 
+    mounted(){
+      this.$store.state.isLogged = this.$session.exists()
+      if (!this.$store.state.isLogged) {
+        this.$router.push('/productos')
       }
     },
     components: {

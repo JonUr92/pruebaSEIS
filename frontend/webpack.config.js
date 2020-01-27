@@ -1,9 +1,10 @@
 const path = require('path');
+const BabelPolyFill = require("babel-polyfill");
 const { VueLoaderPlugin } = require("vue-loader")
 const MiniCSSExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
-    entry: './src/main.js',
+    entry: ["babel-polyfill", './src/main.js'],
     output: {
         path:  path.resolve(__dirname, 'dist'),
         filename: 'bundle.js'
