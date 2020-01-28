@@ -26,6 +26,11 @@ export default new Router({
       path: '/productos',
       name: 'productos',
       component: () => import(/* webpackChunkName: "productos" */ './views/Productos.vue')
+    },
+    {
+      path: '/stock',
+      name: 'stocl',
+      component: () => import(/* webpackChunkName: "stock" */ './views/Stock.vue')
     }
   ]
 })

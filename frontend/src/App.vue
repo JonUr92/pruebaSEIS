@@ -36,10 +36,7 @@
 
     },
     mounted(){
-      this.$store.state.isLogged = this.$session.exists()
-      if (!this.$store.state.isLogged) {
-        this.$router.push('/productos')
-      }
+
     },
     components: {
       Header,

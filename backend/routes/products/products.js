@@ -6,6 +6,7 @@ const routes = express.Router()
 
 routes.post('/getProducts', (req,res)=>{
     const aBody = req.body
+    console.log(aBody)
     /*
         INICIO PARAMETROS POST/GET
     */
@@ -18,9 +19,52 @@ routes.post('/getProducts', (req,res)=>{
         res.json(response);
     })
 })
+routes.get('/getProducts', (req,res)=>{
+    const aBody = req.body
+    console.log(aBody)
+    /*
+        INICIO PARAMETROS POST/GET
+    */
+        let sValue = aBody.sValue;
+    /*
+    FIN PARAMETROS POST/GET
+    */
+    oProductClass.getProducts(sValue)
+    .then(response => {
+        res.json(response);
+    })
+})
+routes.post('/getProduct', (req,res)=>{
+    const aBody = req.body
+    /*
+        INICIO PARAMETROS POST/GET
+    */
+        let sValue = aBody.sValue;
+    /*
+    FIN PARAMETROS POST/GET
+    */
+    oProductClass.getProduct(sValue,'id')
+    .then(response => {
+        res.json(response);
+    })
+})
 routes.get('/getMediciones', (req,res)=>{
     const aBody = req.body
     oProductClass.getMediciones()
+    .then(response => {
+        res.json(response);
+    })
+})
+routes.post('/getStockFromProducto', (req,res)=>{
+    const aBody = req.body
+    /*
+        INICIO PARAMETROS POST/GET
+    */
+        let iIdProducto = aBody.iIdProducto;
+    /*
+        FIN PARAMETROS POST/GET
+    */
+    oProductClass.getStockFromProducto(iIdProducto)
     .then(response => {
         res.json(response);
     })
@@ -65,6 +109,52 @@ routes.post('/addProduct', (req,res)=>{
                 error: "Codigo de producto ya registrado, intente con un Código distinto"
             })
         }
+    })
+})
+routes.post('/updateProduct', (req,res)=>{
+    const aBody = req.body
+    console.log(aBody)
+    /*
+        INICIO PARAMETROS POST/GET
+    */
+        let iIdUpdate = aBody.iIdUpdate;
+        let sNombreProducto = aBody.sNombreProducto;
+        let sDescripcionProducto = aBody.sDescripcionProducto;
+        let iMedicionProducto = aBody.iMedicionProducto;
+        let dPrecioProducto = aBody.dPrecioProducto;
+    /*
+        FIN PARAMETROS POST/GET
+    */
+    const aParams = [sNombreProducto,sDescripcionProducto,iMedicionProducto,dPrecioProducto,iIdUpdate];
+
+    let connection = oDBClass.connect()
+    connection.connect()
+    //connection.beginTransaction()
+    const sQuery = "UPDATE productos SET productos_nombre = ?, productos_descripcion = ?, productos_medicion = ?, productos_precio = ?, productos_fecha_actualizacion = NOW() WHERE id = ?"
+    oDBClass.query(sQuery,aParams,connection)
+    .then(response=>{
+        if(response.error != ""){
+            //connection.commit();
+        }else{
+            //connection.rollback();
+        }
+        console.log(response)
+        oDBClass.closeConnection(connection)
+        res.json(response)
+    })
+})
+routes.post('/deleteProduct', (req,res)=>{
+    const aBody = req.body
+    /*
+        INICIO PARAMETROS POST/GET
+    */
+        let sValue = aBody.sValue;
+    /*
+    FIN PARAMETROS POST/GET
+    */
+    oProductClass.deleteProduct(sValue)
+    .then(response => {
+        res.json(response);
     })
 })
 module.exports = routes

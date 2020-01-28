@@ -9,7 +9,7 @@
               <div class="col-md-12 mb-2">
                 <div class="row">
                   <div class="col-md-6">
-                    <button class="btn btn-primary" v-on:click="addProduct()">Agregar</button>
+                    <button class="btn btn-primary" v-on:click="runForm()">Agregar</button>
                   </div>
                   <div class="col-md-6">
                     <div class="row">
@@ -29,12 +29,9 @@
               <table class="table">
                 <thead>
                   <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Medicion</th>
-                    <th>Precio</th>
-                    <th>Acciones</th>
+                    <template v-for="column in columns">
+                      <th>{{ column.label }}</th>
+                    </template>
                   </tr>
                 </thead>
                 <tbody>
@@ -48,7 +45,8 @@
                       <td>
                         <div class="text-center">
                           <button class="btn btn-primary" v-on:click="editProduct(row.id)"><b-icon icon="pencil"></b-icon></button>
-                          <button class="btn btn-danger ml-1"><b-icon icon="trash"></b-icon></button>
+                          <button class="btn btn-danger ml-1" v-on:click="deleteProduct(row.id)"><b-icon icon="trash"></b-icon></button>
+                          <button class="btn btn-success ml-1" v-on:click="addBodegas(row.id)"><b-icon icon="archive"></b-icon></button>
                         </div>
                       </td>
                     </tr>
@@ -59,8 +57,8 @@
           </div>
         </div>
 
-        <modal v-if="addProductModal" @close="addProductModal = false">
-            <h4 slot="header">Agregar Producto</h4>
+        <modal v-if="productModal" @close="productModal = false">
+            <h4 slot="header">{{ productModalHeader }}</h4>
             <div class="row" slot="body">
                 <div class="panel w-100">
                     <div class="panel-heading pt-2 pb-2 pl-2 pr-2">
@@ -85,8 +83,52 @@
                 </div>
             </div>
             <div class="row" slot="footer"></div>
-            <div slot="btnName">Cerrar</div>
-            <button slot="btnForm" class="btn btn-primary" v-on:click="guardarProducto()">Guardar</button>
+            <div slot="btnName" v-on:click="cerrarModal">Cerrar</div>
+            <button slot="btnForm" class="btn btn-primary" v-on:click="sendForm()">Guardar</button>
+        </modal>
+        <modal v-if="bodegasModal" @close="bodegasModal = false">
+            <h4 slot="header">Bodegas Asignadas</h4>
+            <div class="row" slot="body">
+                <div class="panel w-100">
+                    <div class="panel-heading pt-2 pb-2 pl-2 pr-2">
+                    </div>
+                    <div class="panel-body">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <b-form-group>
+                            <b-form-select v-model="bodegas" :options="aBodegas"></b-form-select>
+                          </b-form-group>
+                        </div>
+                        <div class="col-md-6 text-left">
+                          <button class="btn btn-primary" v-on:click="assignBodega()"><b-icon icon="plus"></b-icon></button>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <table class="table">
+                            <thead>
+                              <tr>
+                                <th>Nombre Bodeha</th>
+                                <th>Stock</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <template v-for="bodega in bodegasStock">
+                                <tr>
+                                  <td>{{ bodega.nombre }}</td>
+                                  <td>{{ bodega.stock }}</td>
+                                </tr>
+                              </template>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" slot="footer"></div>
+            <div slot="btnName" v-on:click="cerrarModal">Cerrar</div>
+            <div slot="btnForm"></div>
         </modal>
     </b-container>
 </template>
@@ -99,21 +141,23 @@
     name: 'productos',
     data(){
       return{
-        addProductModal: false,
+        tipoForm: 1,
+        productModal: false,
+        bodegasModal: false,
+        productModalHeader: "Agregar Producto",
         codigoProducto: "",
         nombreProducto: "",
         descripcionProducto: "",
         medicionProducto: "",
         precioProducto: 0,
-        editIcon: '<svg width="1em" height="1em" viewBox="0 0 20 20" focusable="false" role="img" alt="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi-pencil b-icon bi"><g><path fill-rule="evenodd" d="M13.293 3.293a1 1 0 011.414 0l2 2a1 1 0 010 1.414l-9 9a1 1 0 01-.39.242l-3 1a1 1 0 01-1.266-1.265l1-3a1 1 0 01.242-.391l9-9zM14 4l2 2-9 9-3 1 1-3 9-9z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M14.146 8.354l-2.5-2.5.708-.708 2.5 2.5-.708.708zM5 12v.5a.5.5 0 00.5.5H6v.5a.5.5 0 00.5.5H7v.5a.5.5 0 00.5.5H8v-1.5a.5.5 0 00-.5-.5H7v-.5a.5.5 0 00-.5-.5H5z" clip-rule="evenodd"></path></g></svg>',
-        deleteIcon: '<svg width="1em" height="1em" viewBox="0 0 20 20" focusable="false" role="img" alt="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi-trash b-icon bi"><g><path d="M7.5 7.5A.5.5 0 018 8v6a.5.5 0 01-1 0V8a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V8a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V8z"></path><path fill-rule="evenodd" d="M16.5 5a1 1 0 01-1 1H15v9a2 2 0 01-2 2H7a2 2 0 01-2-2V6h-.5a1 1 0 01-1-1V4a1 1 0 011-1H8a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM6.118 6L6 6.059V15a1 1 0 001 1h6a1 1 0 001-1V6.059L13.882 6H6.118zM4.5 5V4h11v1h-11z" clip-rule="evenodd"></path></g></svg>',
+        idProducto: 0,
         aMediciones: [
           {
             value: "",
             text: "Seleccione una Medición"
           }
         ],
-        buscar: "000001",
+        buscar: "",
         columns: [
             {label: 'Código', field: 'codigo'},
             {label: 'Nombre', field: 'nombre', headerClass: 'class-in-header second-class'},
@@ -122,7 +166,10 @@
             {label: 'Precio', field: 'precio'},
             {label: 'Acciones', representedAs: ({id}) => "<div class='text-center'><button class='btn btn-success editProduct' onclick='editProduct'>"+this.editIcon+"</button><button class='btn btn-danger ml-1'>"+this.deleteIcon+"</button></div>", interpolate: true}
         ],
-        rows: []
+        rows: [],
+        bodegasStock: [],
+        bodegas: "",
+        aBodegas: [],
       }
     },
     mounted(){
@@ -147,9 +194,116 @@
     },
     methods: {
       ...mapMutations([]),
-      ...mapActions(['addProducto', 'getMedicionesProductos', 'getProductos']),
-      editProduct: function(){
-        alert("kejdfnjsnf")
+      ...mapActions(['addProducto', 'getMedicionesProductos', 'getProductos','getProducto','updateProducto','deleteProducto','getBodegas','asignarBodega','getStockFromProducto']),
+      editProduct: function(iIdProducto){
+        let vue = this
+
+        this.getProducto(iIdProducto)
+        .then(response => {
+          const aProducto = response.data.data
+          if(aProducto.length > 0){
+
+            vue.idProducto = iIdProducto
+
+            vue.codigoProducto = aProducto[0].productos_codigo
+            vue.nombreProducto = aProducto[0].productos_nombre
+            vue.descripcionProducto = aProducto[0].productos_descripcion
+            vue.medicionProducto = aProducto[0].productos_medicion
+            vue.precioProducto = aProducto[0].productos_precio
+
+            vue.productModal = true
+            vue.tipoForm = 2
+            vue.productModalHeader = "Modificar Producto"
+          }
+        })
+      },
+      deleteProduct: function(iIdProducto){
+        this.$swal({ icon: 'warning', text: "¿Está seguro de eliminar el producto?", showCancelButton: true, confirmButtonText: "SI", cancelButtonText: "NO" })
+        .then(result => {
+          if(result.value){
+            this.deleteProducto(iIdProducto)
+            .then(response => {
+              const result = response.data.result
+              if(result){
+                this.$swal({ icon: 'success', text: "Producto Eliminado correctamente" })
+              }else{
+                this.$swal({ icon: 'danger', text: "Hubo un error al eliminar el producto" })
+                console.log(response)
+              }
+            })
+          }
+        })
+      },
+      addBodegas: function(iIdProducto){
+        this.idProducto = iIdProducto
+        this.renderBodegas()
+        this.bodegasModal = true;
+      },
+      renderBodegas: function(){
+        this.aBodegas = []
+        const iIdProducto = this.idProducto
+        this.getBodegas(iIdProducto)
+        .then(response => {
+          const aData = response.data.data;
+          for(let i=0; i<aData.length; i++){
+
+            const aBodega = aData[i];
+            const sValue = aBodega.id;
+            const sText = aBodega.bodegas_nombre;
+
+            let aBodegaTmp = {
+              value: sValue,
+              text: sText
+            }
+            this.aBodegas.push(aBodegaTmp);
+          }
+
+          this.renderBodegasStock();
+          this.renderBodegasStock(iIdProducto);
+        })
+      },
+      renderBodegasStock: function(iIdProducto){
+        this.bodegasStock = []
+        this.getStockFromProducto(iIdProducto)
+        .then(response => {
+          const aData = response.data.data;
+          for(let i=0; i<aData.length; i++){
+
+            const aBodega = aData[i];
+            const iIdBodega = aBodega.id;
+            const sNombre = aBodega.bodegas_nombre;
+            const iStock = Number(aBodega.stock);
+
+            let aBodegaTmp = {
+              nombre: sNombre,
+              stock: iStock
+            }
+            this.bodegasStock.push(aBodegaTmp);
+          }
+        })
+      },
+      assignBodega: function(){
+        const bodega = this.bodegas
+        const idProducto = this.idProducto
+        
+        if(bodega == ""){
+          this.$swal({ icon: 'error', title: 'Ops...', text: "Debe seleccionar una bodega" })
+          return false;
+        }
+
+        const aData = {
+          iIdProducto: idProducto,
+          iIdBodega: bodega
+        }
+        this.asignarBodega(aData)
+        .then(response => {
+          console.log(response)
+          const result = response.data.result
+          if(result){
+            this.renderBodegas();
+          }
+        })
+
       },
       renderProducts: function(){
         this.rows = []
@@ -180,8 +334,74 @@
           }
         })
       },
-      addProduct: function(){
-          this.addProductModal = true
+      runForm: function(){
+          this.productModal = true
+      },
+      cerrarModal: function(){
+        this.idProducto = 0
+        this.productModal = false
+        this.bodegasModal = false
+        this.tipoForm = 1
+        this.productModalHeader = "Agregar Producto"
+        this.codigoProducto = "";
+        this.nombreProducto = "";
+        this.descripcionProducto = "";
+        this.medicionProducto = "";
+        this.precioProducto = 0;
+        this.renderProducts()
+      },
+      sendForm: function(){
+        switch(this.tipoForm){
+          case 1:
+            this.guardarProducto();
+            break;
+          case 2:
+            this.modificarProducto()
+            break;
+        }
+      },
+      modificarProducto: function(){
+        const aData = {
+          iIdUpdate: this.idProducto,
+          sNombreProducto: this.nombreProducto,
+          sDescripcionProducto: this.descripcionProducto,
+          iMedicionProducto: this.medicionProducto,
+          dPrecioProducto: this.precioProducto,
+        }
+        
+        if(this.nombreProducto == ""){
+          this.$swal({ icon: 'error', title: 'Ops...', text: "Debe ingresar un Nombre de Producto" })
+          return false;
+        }
+        if(this.medicionProducto == ""){
+          this.$swal({ icon: 'error', title: 'Ops...', text: "Debe ingresar una Medición del Producto" })
+          return false;
+        }
+        if(this.precioProducto == 0){
+          this.$swal({ icon: 'error', title: 'Ops...', text: "Debe ingresar el Precio del Producto" })
+          return false;
+        }else{
+          console.log(Number(this.precioProducto))
+          if(isNaN(Number(this.precioProducto))){
+            this.$swal({ icon: 'error', title: 'Ops...', text: "Debe ingresar monto Valido" })
+            return false;
+          }
+        }
+
+        this.updateProducto(aData)
+        .then(response =>{
+          console.log(response)
+          response = response.data;
+          if(response.result){
+            this.$swal({ icon: 'success', title: 'Enhorabuena...', text: 'Producto agregado actualizado correctamente!' })
+            .then(response => {
+              this.cerrarModal()
+            })
+          }else{
+            this.$swal({ icon: 'error', title: 'Ops...', text: JSON.stringify(response.error) })
+          }
+        })
+
       },
       guardarProducto: function(e){
 
@@ -222,12 +442,7 @@
           if(response.result){
             this.$swal({ icon: 'success', title: 'Enhorabuena...', text: 'Producto agregado correctamente!' })
             .then(response => {
-              this.codigoProducto = "";
-              this.nombreProducto = "";
-              this.descripcionProducto = "";
-              this.medicionProducto = "";
-              this.precioProducto = 0;
-              this.addProductModal = false;
+              this.cerrarModal()
             })
           }else{
             this.$swal({ icon: 'error', title: 'Ops...', text: JSON.stringify(response.error) })

@@ -20,6 +20,7 @@ app.get('/', function(req, res) {
     res.status(200).json({error: 501})
 });
 app.use("/api/products",cors(corsOptions),require("./routes/products/products")) //PRODUCTS
+app.use("/api/bodegas",cors(corsOptions),require("./routes/bodegas/bodegas")) //BODEGAS
 
 //Server Listenig
 app.listen(app.get("port"),()=>{
