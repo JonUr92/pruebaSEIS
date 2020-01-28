@@ -134,7 +134,7 @@
                     return false
                 }
 
-                const iCantidad = this.tipoMovimiento == 1 ? iCantidad : "-"+this.cantidad
+                const iCantidad = this.tipoMovimiento == 1 ? this.cantidad : "-"+this.cantidad
                 const aData = {
                     iIdProducto: this.producto.id,
                     iIdBodega: this.bodega.id,
